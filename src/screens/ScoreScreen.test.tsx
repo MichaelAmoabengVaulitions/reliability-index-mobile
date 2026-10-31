@@ -1,13 +1,14 @@
 import { fireEvent, screen } from '@testing-library/react-native';
 import { router } from 'expo-router';
 
-import { useDummyScoreStatus } from '@/dummy-data/useDummyScoreStatus';
+import { useReliabilityScore } from '@/data/useReliabilityScore';
 import { renderWithProviders } from '@/test-utils/renderWithProviders';
+import { sampleScores } from '@/test-utils/sampleScores';
 
 import { ScoreScreen } from './ScoreScreen';
 
 jest.mock('expo-router', () => ({ router: { navigate: jest.fn() } }));
-jest.mock('@/dummy-data/useDummyScoreStatus');
+jest.mock('@/data/useReliabilityScore');
 jest.mock('@react-native-community/datetimepicker', () => {
   const { View } = require('react-native');
   return {
@@ -16,10 +17,14 @@ jest.mock('@react-native-community/datetimepicker', () => {
   };
 });
 
-const mockedStatus = jest.mocked(useDummyScoreStatus);
+const mockedScore = jest.mocked(useReliabilityScore);
 
 function showStatus(status: 'ready' | 'loading' | 'error', retry = jest.fn()) {
-  mockedStatus.mockReturnValue({ status, retry });
+  mockedScore.mockImplementation((userId) => ({
+    status,
+    retry,
+    score: status === 'ready' ? sampleScores[userId] : undefined,
+  }));
 }
 
 async function pickUser(userId: string) {
@@ -88,6 +93,11 @@ describe('ScoreScreen', () => {
 
     await fireEvent.press(screen.getByText('Show this window'));
     expect(screen.getByText('Sep 2025 – Feb 2026')).toBeOnTheScreen();
+  });
+
+  it('asks for the score of the selected user and end date', async () => {
+    await renderWithProviders(<ScoreScreen />);
+    expect(mockedScore).toHaveBeenCalledWith('user_1009', '2026-10-31');
   });
 
   it('shows the loading state', async () => {

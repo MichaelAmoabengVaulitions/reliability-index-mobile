@@ -67,6 +67,7 @@ export function fromPickerDate(date: Date): string {
   return `${date.getFullYear()}-${month}-${day}`;
 }
 
+// The backend works in UTC, so the viewer's time zone must not change the day.
 export function todayAsDate(): string {
-  return fromPickerDate(new Date());
+  return new Date().toISOString().slice(0, 10);
 }

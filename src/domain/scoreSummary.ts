@@ -24,6 +24,11 @@ function describeBillsComparison(score: ReliabilityScore): string {
   return `${score.incomeComparedWithBills.toFixed(2)} times`;
 }
 
+function formatDriverPoints(points: number): string {
+  if (points === 0) return '';
+  return points > 0 ? `+${points}` : `${minusSign}${Math.abs(points)}`;
+}
+
 export function buildKeyNumbers(score: ReliabilityScore): KeyNumber[] {
   return [
     { label: 'Months with income', value: `${score.monthsWithIncome} of ${scoringWindowMonths}` },
@@ -67,7 +72,7 @@ export function buildScoreGroups(score: ReliabilityScore): ScoreGroup[] {
   }
   if (score.lateFees > 0) {
     const text = score.lateFees === 1 ? '1 late fee' : `${score.lateFees} late fees`;
-    add(hurting, text, `${minusSign}${score.lateFees}`);
+    add(hurting, text, `${minusSign}${score.lateFeePenaltyPoints}`);
   }
   if (score.highRiskPenaltyPoints > 0) {
     add(hurting, 'Spending in high-risk categories', `${minusSign}${score.highRiskPenaltyPoints}`);
@@ -77,6 +82,10 @@ export function buildScoreGroups(score: ReliabilityScore): ScoreGroup[] {
     score.goodMonths >= helpingMonthsMinimum ? helping : hurting,
     `Good months: ${score.goodMonths} of ${scoringWindowMonths}`,
   );
+
+  for (const driver of score.otherDrivers) {
+    add(noted, driver.text, formatDriverPoints(driver.points));
+  }
 
   const groups = [
     { title: 'What is helping', items: helping },

@@ -1,14 +1,14 @@
-import { dummyScores } from '@/dummy-data/scores';
+import { sampleScores } from '@/test-utils/sampleScores';
 
 import { buildKeyNumbers, buildScoreGroups } from './scoreSummary';
 
 function groupTitled(userId: string, title: string) {
-  return buildScoreGroups(dummyScores[userId]).find((group) => group.title === title);
+  return buildScoreGroups(sampleScores[userId]).find((group) => group.title === title);
 }
 
 describe('buildKeyNumbers', () => {
   it('lists the six key numbers in the design order', () => {
-    expect(buildKeyNumbers(dummyScores.user_1009)).toEqual([
+    expect(buildKeyNumbers(sampleScores.user_1009)).toEqual([
       { label: 'Months with income', value: '6 of 6' },
       { label: 'Income compared with bills', value: '3.29 times' },
       { label: 'Essential bills paid', value: '100%' },
@@ -19,7 +19,7 @@ describe('buildKeyNumbers', () => {
   });
 
   it('says so when there are no bills to compare income with', () => {
-    const keyNumbers = buildKeyNumbers(dummyScores.user_1010);
+    const keyNumbers = buildKeyNumbers(sampleScores.user_1010);
     expect(keyNumbers[1]).toEqual({
       label: 'Income compared with bills',
       value: 'No bills found',
@@ -72,8 +72,17 @@ describe('buildScoreGroups', () => {
     ]);
   });
 
+  it('shows a driver the app does not recognise under Also noted', () => {
+    const score = {
+      ...sampleScores.user_1009,
+      otherDrivers: [{ text: 'New backend rule', points: -4 }],
+    };
+    const noted = buildScoreGroups(score).find((group) => group.title === 'Also noted');
+    expect(noted?.items).toEqual([{ text: 'New backend rule', points: '−4' }]);
+  });
+
   it('leaves out groups with nothing in them', () => {
-    const titles = buildScoreGroups(dummyScores.user_1009).map((group) => group.title);
+    const titles = buildScoreGroups(sampleScores.user_1009).map((group) => group.title);
     expect(titles).toEqual(['What is helping', 'What is hurting']);
   });
 });

@@ -6,9 +6,9 @@ import { ChevronIcon } from '@/components/ChevronIcon';
 import { ScoreScale } from '@/components/ScoreScale';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { SelectionHeader } from '@/components/SelectionHeader';
+import { useReliabilityScore } from '@/data/useReliabilityScore';
+import type { ReliabilityScore } from '@/domain/score';
 import { buildKeyNumbers, buildScoreGroups } from '@/domain/scoreSummary';
-import { dummyScores } from '@/dummy-data/scores';
-import { useDummyScoreStatus } from '@/dummy-data/useDummyScoreStatus';
 import { useSelection } from '@/selection/SelectionContext';
 import { colors, fontSizes, layout } from '@/theme';
 
@@ -16,21 +16,19 @@ import { ErrorState } from './ErrorState';
 import { LoadingState } from './LoadingState';
 
 export function ScoreScreen() {
-  const { status, retry } = useDummyScoreStatus();
+  const { selectedUserId, scoringWindowEndDate } = useSelection();
+  const { status, score, retry } = useReliabilityScore(selectedUserId, scoringWindowEndDate);
 
   return (
     <ScreenContainer>
       {status === 'loading' && <LoadingState />}
       {status === 'error' && <ErrorState onRetry={retry} />}
-      {status === 'ready' && <ScoreContent />}
+      {score !== undefined && <ScoreContent score={score} />}
     </ScreenContainer>
   );
 }
 
-function ScoreContent() {
-  const { selectedUserId } = useSelection();
-  const score = dummyScores[selectedUserId];
-
+function ScoreContent({ score }: { score: ReliabilityScore }) {
   return (
     <ScrollView contentContainerStyle={styles.scrollContent}>
       <SelectionHeader />

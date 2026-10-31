@@ -1,6 +1,5 @@
 import { Pressable, ScrollView, StyleSheet } from 'react-native';
 
-import { dummyUserIds } from '@/dummy-data/scores';
 import { useSelection } from '@/selection/SelectionContext';
 import { colors, layout } from '@/theme';
 
@@ -8,7 +7,7 @@ import { AppText } from './AppText';
 import { BottomSheet } from './BottomSheet';
 
 export function UserSheet({ onClose }: { onClose: () => void }) {
-  const { selectUser } = useSelection();
+  const { userIds, selectUser } = useSelection();
 
   function pickUser(userId: string) {
     selectUser(userId);
@@ -18,7 +17,7 @@ export function UserSheet({ onClose }: { onClose: () => void }) {
   return (
     <BottomSheet title="Choose a user" onClose={onClose} style={styles.sheet}>
       <ScrollView style={styles.list}>
-        {dummyUserIds.map((userId) => (
+        {userIds.map((userId) => (
           <Pressable
             key={userId}
             accessibilityRole="button"
