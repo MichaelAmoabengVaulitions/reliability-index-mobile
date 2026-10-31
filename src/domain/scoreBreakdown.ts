@@ -22,9 +22,16 @@ function pointsTakenAway(name: string, points: number, note: string): BreakdownS
  * worked out here.
  */
 export function buildBreakdownSteps(score: ReliabilityScore): BreakdownStep[] {
-  const { savingsPoints, daysBelowZeroPenaltyPoints, lateFees, highRiskPenaltyPoints } = score;
+  const { savingsPoints, daysBelowZeroPenaltyPoints, lateFeePenaltyPoints } = score;
+  const { lateFees, highRiskPenaltyPoints, otherDrivers } = score;
+  const otherPoints = otherDrivers.reduce((total, driver) => total + driver.points, 0);
   const incomeAndBillsPoints =
-    score.score - savingsPoints + daysBelowZeroPenaltyPoints + lateFees + highRiskPenaltyPoints;
+    score.score -
+    savingsPoints +
+    daysBelowZeroPenaltyPoints +
+    lateFeePenaltyPoints +
+    highRiskPenaltyPoints -
+    otherPoints;
 
   const steps = [
     pointsAdded(
@@ -45,9 +52,9 @@ export function buildBreakdownSteps(score: ReliabilityScore): BreakdownStep[] {
       ),
     );
   }
-  if (lateFees > 0) {
+  if (lateFeePenaltyPoints > 0) {
     const note = lateFees === 1 ? '1 late fee' : `${lateFees} late fees`;
-    steps.push(pointsTakenAway('Late fees', lateFees, note));
+    steps.push(pointsTakenAway('Late fees', lateFeePenaltyPoints, note));
   }
   if (highRiskPenaltyPoints > 0) {
     steps.push(
@@ -57,6 +64,10 @@ export function buildBreakdownSteps(score: ReliabilityScore): BreakdownStep[] {
         'Spending in high-risk categories',
       ),
     );
+  }
+  for (const { text, points } of otherDrivers) {
+    if (points > 0) steps.push(pointsAdded(text, points, ''));
+    if (points < 0) steps.push(pointsTakenAway(text, Math.abs(points), ''));
   }
   return steps;
 }

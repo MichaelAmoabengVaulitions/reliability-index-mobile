@@ -2,6 +2,7 @@ import {
   describeScoringWindow,
   formatDateForField,
   monthLabelsInScoringWindow,
+  todayAsDate,
 } from './scoringWindow';
 
 describe('describeScoringWindow', () => {
@@ -36,5 +37,14 @@ describe('monthLabelsInScoringWindow', () => {
 describe('formatDateForField', () => {
   it('shows a date the way the date field does', () => {
     expect(formatDateForField('2026-10-31')).toBe('10/31/2026');
+  });
+});
+
+describe('todayAsDate', () => {
+  afterEach(() => jest.useRealTimers());
+
+  it('uses the UTC date, as the backend does', () => {
+    jest.useFakeTimers({ now: new Date('2026-03-01T23:30:00-05:00') });
+    expect(todayAsDate()).toBe('2026-03-02');
   });
 });

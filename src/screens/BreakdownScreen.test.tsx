@@ -1,10 +1,39 @@
-import { screen } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
 
+import { useReliabilityScore } from '@/data/useReliabilityScore';
 import { renderWithProviders } from '@/test-utils/renderWithProviders';
+import { sampleScores } from '@/test-utils/sampleScores';
 
 import { BreakdownScreen } from './BreakdownScreen';
 
+jest.mock('@/data/useReliabilityScore');
+
+const mockedScore = jest.mocked(useReliabilityScore);
+
 describe('BreakdownScreen', () => {
+  beforeEach(() => {
+    mockedScore.mockImplementation((userId) => ({
+      status: 'ready',
+      retry: jest.fn(),
+      score: sampleScores[userId],
+    }));
+  });
+
+  it('shows the loading state', async () => {
+    mockedScore.mockReturnValue({ status: 'loading', retry: jest.fn(), score: undefined });
+    await renderWithProviders(<BreakdownScreen />);
+    expect(screen.getByLabelText('Loading score')).toBeOnTheScreen();
+  });
+
+  it('shows the error state and retries', async () => {
+    const retry = jest.fn();
+    mockedScore.mockReturnValue({ status: 'error', retry, score: undefined });
+    await renderWithProviders(<BreakdownScreen />);
+
+    await fireEvent.press(screen.getByText('Try again'));
+    expect(retry).toHaveBeenCalledTimes(1);
+  });
+
   it('shows each step and the score at the end', async () => {
     await renderWithProviders(<BreakdownScreen />);
 
